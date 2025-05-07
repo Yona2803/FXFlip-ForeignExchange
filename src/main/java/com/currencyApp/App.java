@@ -1,12 +1,15 @@
 package com.currencyApp;
 
 import com.currencyApp.config.Config;
+import com.currencyApp.model.Currency;
+import com.currencyApp.ui.ComboBoxElement;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -14,7 +17,41 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+import java.awt.*;
+import java.util.List;
+import java.util.Objects;
+
+import com.currencyApp.model.Currency;
+
 public class App extends Application {
+
+    /**
+     * Finds a currency by its code in the given list
+     * @param currencies List of currencies to search
+     * @param code Currency code to find
+     * @return The found Currency or the first currency in the list if not found
+     */
+    private Currency findDefaultCurrency(List<Currency> currencies, String code) {
+        if (currencies == null || currencies.isEmpty()) {
+            return null;
+        }
+
+        return currencies.stream()
+                .filter(c -> c.getCode().equalsIgnoreCase(code))
+                .findFirst()
+                .orElse(currencies.get(0));
+    }
+
+    /**
+     * Creates a labeled container for a currency ComboBox
+     * @param comboBoxElement The ComboBoxElement
+     * @return VBox containing the ComboBoxElement
+     */
+    private VBox createLabeledCurrencyBox(ComboBoxElement comboBoxElement) {
+        VBox container = new VBox(5);
+        container.getChildren().addAll( comboBoxElement);
+        return container;
+    }
 
     @Override
     public void start(Stage primaryStage) {
@@ -35,9 +72,83 @@ public class App extends Application {
         VBox innerFrame = createInnerFrame();
         layout.getChildren().add(innerFrame);
 
-        // Create currency switching interface
-//        HBox currencySwitching = createCurrencySwitchingInterface();
-//        innerFrame.getChildren().add(currencySwitching);
+        // Get a currency list from API
+        List<Currency> currencies = Currency.getCurrencyListFromAPI();
+        List<Currency> currencyRates = Currency.getCurrencyRatesFromAPI();
+
+        if (currencies == null || currencies.isEmpty() || currencyRates == null || currencyRates.isEmpty()) {
+            showErrorAlert("Failed to load currency data. Please check your connection.");
+            return;
+        }
+        // Create multiple ComboBoxElements with different default currencies
+        ComboBoxElement fromCurrencyBox = new ComboBoxElement(currencies, findDefaultCurrency(currencies, "MAD"));
+        ComboBoxElement toCurrencyBox = new ComboBoxElement(currencies, findDefaultCurrency(currencies, "USD"));
+        fromCurrencyBox.setPadding(new javafx.geometry.Insets(0, 0, 18,0 ));
+        toCurrencyBox.setPadding(new javafx.geometry.Insets(0, 0, 18,0 ));
+
+        TextField amountField = new TextField();
+        amountField.setPromptText("");
+        amountField.getStyleClass().add("input-Field");
+        amountField.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/currencyApp/assets/Style/EntryField.css")).toExternalForm());
+
+        // Accept only valid float/double inputs
+        amountField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal.matches("\\d*(\\.\\d*)?")) {
+                amountField.setText(oldVal); // revert to old value
+            }
+        });
+
+        Label leftLabel = new Label();
+        leftLabel.setText("From:");
+        leftLabel.getStyleClass().add("label-Field");
+        leftLabel.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/currencyApp/assets/Style/EntryField.css")).toExternalForm());
+
+        Label resultLabel = new Label();
+        resultLabel.getStyleClass().add("output-Field");
+        resultLabel.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/currencyApp/assets/Style/EntryField.css")).toExternalForm());
+
+        Label rightLabel = new Label();
+        rightLabel.setText("To:");
+        rightLabel.getStyleClass().add("label-Field");
+        rightLabel.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/currencyApp/assets/Style/EntryField.css")).toExternalForm());
+
+
+        amountField.textProperty().addListener((obs, oldVal, newVal) -> {
+            calculateAndDisplay(amountField, fromCurrencyBox, toCurrencyBox, currencyRates, resultLabel);
+        });
+
+        // Layout for multiple currency selectors
+        VBox leftSection = new VBox(2);
+        leftSection.setPrefSize(309, 168);
+        leftSection.setMaxWidth(309);
+        leftSection.getChildren().addAll(
+                fromCurrencyBox,
+                leftLabel,
+                amountField
+        );
+        VBox rightSection = new VBox(2);
+        rightSection.setPrefSize(309, 168);
+        rightSection.setMaxWidth(309);
+        rightSection.getChildren().addAll(
+                toCurrencyBox,
+                rightLabel,
+                resultLabel
+        );
+
+
+        HBox exchangeSection = new HBox();
+        exchangeSection.setPrefSize(733, 268);
+        exchangeSection.setPadding(new javafx.geometry.Insets(24, 0, 0, 0));
+
+//        HBox separatorLine  = new HBox();
+        Region separatorLine = new Region();
+        separatorLine.setPrefSize(1, 92);
+        separatorLine.setStyle("-fx-background-color: #A6A6A6;");
+        VBox separatorWrapper = new VBox(separatorLine);
+        separatorWrapper.setPadding(new javafx.geometry.Insets(45, 43, 0, 43));
+
+        exchangeSection.getChildren().addAll(leftSection, separatorWrapper, rightSection);
+        innerFrame.getChildren().add(exchangeSection);
 
         // Scene
         Scene scene = new Scene(layout);
@@ -45,6 +156,61 @@ public class App extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
+
+    private void showErrorAlert(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+
+    private void calculateAndDisplay(TextField amountField, ComboBoxElement fromBox, ComboBoxElement toBox, List<Currency> currencyRates, Label resultLabel) {
+        try {
+            String fromCode = fromBox.getSelectedItem();
+            String toCode = toBox.getSelectedItem();
+
+            if (amountField.getText() == null || amountField.getText().trim().isEmpty()) {
+                resultLabel.setText("");
+                return;
+            }
+
+            double amount = Double.parseDouble(amountField.getText());
+
+            double fromRate = getRateForCurrency(currencyRates, fromCode);
+            double toRate = getRateForCurrency(currencyRates, toCode);
+
+            if (fromRate == 0 || toRate == 0) {
+                resultLabel.setText("Error: Invalid exchange rate");
+                return;
+            }
+
+            // Convert from 'fromCode' to base, then to 'toCode'
+            double baseAmount = amount / fromRate;
+            double converted = baseAmount * toRate;
+
+            resultLabel.setText(String.format("%.2f", converted));
+
+        } catch (NumberFormatException e) {
+            resultLabel.setText("");
+        } catch (Exception e) {
+            resultLabel.setText("Error: " + e.getMessage());
+        }
+    }
+
+    private double getRateForCurrency(List<Currency> currencyList, String code) {
+        for (Currency c : currencyList) {
+            if (c.getCode().equals(code)) {
+                double rate = c.getRate();
+
+                return c.getRate();
+            }
+        }
+        throw new IllegalArgumentException("Rate not found for " + code);
+    }
+
+
     /**
      * Configure primary stage properties
      */
@@ -87,9 +253,9 @@ public class App extends Application {
      */
     private VBox createInnerFrame() {
         VBox innerFrame = new VBox(10);
-        innerFrame.setPrefSize(699, 244);
+        innerFrame.setPrefSize(733, 268);
         innerFrame.setStyle(
-                "-fx-background-color: #141414;" +
+                "-fx-background-color: #1E1E1E;" +
                         "-fx-background-radius: 8;" +
                         "-fx-padding: 17;"
         );
@@ -102,4 +268,9 @@ public class App extends Application {
 
         return innerFrame;
     }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
 }
+

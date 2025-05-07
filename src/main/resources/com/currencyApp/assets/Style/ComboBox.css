@@ -1,0 +1,56 @@
+/* Style the ComboBox */
+.combo-box {
+    -fx-text-fill: white;
+    -fx-font-family: 'Segoe UI';
+    -fx-font-size: 14px;
+    -fx-background-color: #0864E7;
+    -fx-background-radius: 24;
+    -fx-padding: 2 0 2 2;
+}
+
+/* Style the arrow button */
+.combo-box .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-radius: 8;
+}
+
+/* Style the arrow itself */
+.combo-box .arrow {
+    -fx-background-color: white;
+    -fx-border-radius: 8;
+}
+
+/* Style the dropdown popup list */
+.combo-box .list-view {
+    -fx-background-color: #0864E7;
+    -fx-background-radius: 8;
+}
+
+/* Style the list items (default state) */
+.combo-box .list-cell {
+    -fx-font-family: 'Segoe UI';
+    -fx-font-size: 14px;
+    -fx-text-fill: #D3E5FF;
+    -fx-background-color: transparent;
+    -fx-padding: 5 7 5 7;
+    -fx-background-radius: 8;
+}
+
+/* Highlighted item when hovered or selected */
+.combo-box .list-cell:hover{
+                               -fx-background-color: #227DFF;
+                               -fx-text-fill: white;
+                           }
+
+
+/* Style the vertical scrollbar track */
+.combo-box .scroll-bar:vertical {
+        -fx-background-color: transparent;
+
+}
+
+/* Style the arrows (optional: hide them for a clean look) */
+.combo-box .scroll-bar .increment-button,
+.combo-box .scroll-bar .decrement-button {
+    -fx-border-radius: 8;
+}

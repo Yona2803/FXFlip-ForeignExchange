@@ -1,0 +1,23 @@
+/* Style the ComboBox */
+.input-Field {
+    -fx-text-fill: white;
+    -fx-font-family: 'Segoe UI';
+    -fx-font-size: 42px;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+/* Style the arrow itself */
+.output-Field {
+    -fx-text-fill: white;
+    -fx-font-family: 'Segoe UI';
+    -fx-font-size: 42px;
+    -fx-padding: 0;
+}
+
+.label-Field {
+    -fx-text-fill: #B8B8B8;
+    -fx-font-family: 'Segoe UI';
+    -fx-font-size: 14px;
+    -fx-padding: 0;
+}

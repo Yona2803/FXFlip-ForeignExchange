@@ -1,0 +1,50 @@
+/* Custom stylesheet for chart styling */
+
+.chart {
+    -fx-background-color: black;
+}
+
+.chart-plot-background {
+    -fx-background-color: black;
+}
+
+.chart-legend {
+    -fx-background-color: black;
+    -fx-padding: 10px;
+}
+
+.chart-legend-item {
+    -fx-text-fill: white;
+}
+
+.chart-legend-item-symbol {
+    -fx-background-insets: 0;
+}
+
+.chart-legend .text {
+    -fx-fill: white;
+}
+
+/* Style the series symbols in the chart */
+.chart-series-symbol {
+    -fx-background-insets: 0;
+    -fx-stroke: null;
+}
+
+/* Style the series line */
+.chart-series-line {
+    -fx-stroke-width: 1.5px;
+}
+
+/* Style the grid lines */
+.chart-horizontal-grid-lines {
+    -fx-stroke: #333333;
+}
+
+.axis {
+    -fx-tick-label-fill: #B8B8B8;
+}
+
+.axis-label {
+    -fx-text-fill: #B8B8B8;
+}

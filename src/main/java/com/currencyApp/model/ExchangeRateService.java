@@ -17,7 +17,7 @@ import java.net.UnknownHostException;
  * Handles API responses from an exchange rate service
  * Visual error reporting via dialogs
  */
-public class exchangeRateService {
+public class ExchangeRateService {
     private static final String BASE_URL = Config.get("baseUrl");
     private static final String API_KEY = Config.get("apiKey");
     private static final int CONNECTION_TIMEOUT = 10000; // 10 seconds
