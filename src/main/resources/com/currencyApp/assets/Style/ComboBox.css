@@ -6,6 +6,11 @@
     -fx-background-color: #0864E7;
     -fx-background-radius: 24;
     -fx-padding: 2 0 2 2;
+    -fx-cursor: hand;
+}
+
+.combo-box:hover {
+    -fx-background-color: #227DFF;
 }
 
 /* Style the arrow button */

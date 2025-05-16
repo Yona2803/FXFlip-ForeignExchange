@@ -47,7 +47,7 @@ public class ComboBoxElement extends HBox {
         comboBox.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/currencyApp/assets/Style/ComboBox.css")).toExternalForm());
 
         // Create the label that will show the selected currency name
-        nameLabel = new Label("Select a currency");
+        nameLabel = new Label("");
         nameLabel.setMaxWidth(206);
         nameLabel.setStyle("-fx-text-fill: #B8B8B8;");
         nameLabel.setFont(Font.font("Segoe UI", FontWeight.SEMI_BOLD, 20));

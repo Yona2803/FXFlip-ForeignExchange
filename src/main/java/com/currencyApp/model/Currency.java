@@ -80,7 +80,61 @@ public class Currency {
 
         return currencyList;
     }
-    public static Map<String, Map<String, Object>> getTodayRatesAnd24hChange(String baseCurrency) {
+
+    public static Map<String, Map<String, Object>> getTodayRates_OneCurrency(String baseCurrency, String targetCurrency) {
+        LocalDate today = LocalDate.now();
+        LocalDate yesterday = today.minusDays(1);
+        LocalDate secondDayBefore = today.minusDays(2);
+
+        String endpoint = String.format("/time-series?from=%s&to=%s&start=%s&end=%s&",
+                baseCurrency, targetCurrency, secondDayBefore.toString(), yesterday.toString());
+
+        Map<String, Float> todayRates = new HashMap<>();
+        Map<String, String> rateChanges = new HashMap<>();
+        Map<String, Boolean> changeDirections = new HashMap<>();
+
+        try {
+            String response = ExchangeRateService.getResponse(endpoint);
+            JsonObject json = gson.fromJson(response, JsonObject.class);
+
+            // Verify we got results for the requested currency pair
+            if (!json.has("results") || !json.getAsJsonObject("results").has(targetCurrency)) {
+                throw new RuntimeException("No data available for " + baseCurrency + " to " + targetCurrency);
+            }
+
+            JsonObject currencyData = json.getAsJsonObject("results").getAsJsonObject(targetCurrency);
+
+            // Get rates for both days
+            float yesterdayRate = currencyData.get(yesterday.toString()).getAsFloat();
+            float dayBeforeRate = currencyData.get(secondDayBefore.toString()).getAsFloat();
+
+            // Store the current rate
+            todayRates.put(targetCurrency, yesterdayRate);
+
+            // Calculate percentage change
+            float change = ((yesterdayRate - dayBeforeRate) / dayBeforeRate) * 100f;
+            boolean isChangePositive = yesterdayRate >= dayBeforeRate;
+            String formattedChange = String.format("%.2f%%", Math.abs(change));
+
+            // Store the change information
+            rateChanges.put(targetCurrency, formattedChange);
+            changeDirections.put(targetCurrency, isChangePositive);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Consider rethrowing or handling the error appropriately
+        }
+
+        // Prepare the result map
+        Map<String, Map<String, Object>> result = new HashMap<>();
+        result.put("rates", new HashMap<>(todayRates));
+        result.put("changes", new HashMap<>(rateChanges));
+        result.put("directions", new HashMap<>(changeDirections));
+
+        return result;
+    }
+
+    public static Map<String, Map<String, Object>> getTodayRatesAnd24hChange_AllCurrencies(String baseCurrency) {
         LocalDate today = LocalDate.now();
         LocalDate yesterday = today.minusDays(1);
         LocalDate secondDayBefore = today.minusDays(2);
@@ -128,6 +182,48 @@ public class Currency {
         result.put("rates", (Map<String, Object>) (Map<?, ?>) todayRates);
         result.put("changes", (Map<String, Object>) (Map<?, ?>) rateChanges);
         result.put("directions", (Map<String, Object>) (Map<?, ?>) changeDirections);
+
+        return result;
+    }
+
+    public static Map<String, Map<String, Object>> getChangesInPast14days(String baseCurrency, String targetCurrency) {
+        Map<String, Map<String, Object>> result = new HashMap<>();
+
+        LocalDate today = LocalDate.now();
+        LocalDate yesterday = today.minusDays(1);
+        LocalDate day15Before = today.minusDays(14);
+
+        String endpoint = String.format(
+                "/time-series?from=%s&to=%s&start=%s&end=%s&",
+                baseCurrency, targetCurrency, day15Before, yesterday
+        );
+
+        try {
+            String response = ExchangeRateService.getResponse(endpoint); // implement this yourself
+            JsonObject json = gson.fromJson(response, JsonObject.class);
+
+            // Add base currency
+            String base = json.get("base").getAsString();
+            result.put("base", Map.of("code", base));  // You can customize this if needed
+
+            // Add currency time-series data
+            JsonObject results = json.getAsJsonObject("results");
+
+            for (Map.Entry<String, JsonElement> currencyEntry : results.entrySet()) {
+                String currency = currencyEntry.getKey(); // e.g., "USD"
+                JsonObject dateRateObject = currencyEntry.getValue().getAsJsonObject();
+
+                Map<String, Object> dateRateMap = new TreeMap<>(); // Sorted by date
+                for (Map.Entry<String, JsonElement> rateEntry : dateRateObject.entrySet()) {
+                    dateRateMap.put(rateEntry.getKey(), rateEntry.getValue().getAsDouble());
+                }
+
+                result.put(currency, dateRateMap);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         return result;
     }
