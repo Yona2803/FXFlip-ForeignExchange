@@ -4,7 +4,10 @@ import com.currencyApp.config.Config;
 import com.currencyApp.model.Currency;
 import com.currencyApp.ui.ComboBoxElement;
 import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -112,6 +115,14 @@ public class App extends Application {
         rightLabel.getStyleClass().add("label-Field");
         rightLabel.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/currencyApp/assets/Style/EntryField.css")).toExternalForm());
 
+        // Add listeners for ComboBox changes
+        fromCurrencyBox.getComboBox().valueProperty().addListener((obs, oldVal, newVal) -> {
+            calculateAndDisplay(amountField, fromCurrencyBox, toCurrencyBox, currencyRates, resultLabel);
+        });
+
+        toCurrencyBox.getComboBox().valueProperty().addListener((obs, oldVal, newVal) -> {
+            calculateAndDisplay(amountField, fromCurrencyBox, toCurrencyBox, currencyRates, resultLabel);
+        });
 
         amountField.textProperty().addListener((obs, oldVal, newVal) -> {
             calculateAndDisplay(amountField, fromCurrencyBox, toCurrencyBox, currencyRates, resultLabel);
@@ -119,15 +130,16 @@ public class App extends Application {
 
         // Layout for multiple currency selectors
         VBox leftSection = new VBox(2);
-        leftSection.setPrefSize(309, 168);
+        leftSection.setPrefSize(309, 148);
         leftSection.setMaxWidth(309);
         leftSection.getChildren().addAll(
                 fromCurrencyBox,
                 leftLabel,
                 amountField
         );
+
         VBox rightSection = new VBox(2);
-        rightSection.setPrefSize(309, 168);
+        rightSection.setPrefSize(309, 148);
         rightSection.setMaxWidth(309);
         rightSection.getChildren().addAll(
                 toCurrencyBox,
@@ -135,9 +147,8 @@ public class App extends Application {
                 resultLabel
         );
 
-
         HBox exchangeSection = new HBox();
-        exchangeSection.setPrefSize(733, 268);
+        exchangeSection.setPrefSize(733, 100);
         exchangeSection.setPadding(new javafx.geometry.Insets(24, 0, 0, 0));
 
 //        HBox separatorLine  = new HBox();
@@ -147,8 +158,28 @@ public class App extends Application {
         VBox separatorWrapper = new VBox(separatorLine);
         separatorWrapper.setPadding(new javafx.geometry.Insets(45, 43, 0, 43));
 
+
         exchangeSection.getChildren().addAll(leftSection, separatorWrapper, rightSection);
-        innerFrame.getChildren().add(exchangeSection);
+        innerFrame.getChildren().addAll(exchangeSection);
+
+//        Comparison section
+        HBox middleSection = new HBox();
+        middleSection.setPrefSize(733, 40);
+        middleSection.setAlignment(Pos.CENTER_LEFT);
+
+        HBox comparisonSection = createCurrencyComparisonSection(currencyRates);
+        comparisonSection.setMinWidth(559);
+
+        Button toggleButton = new Button("Show Statistics");
+        toggleButton.getStyleClass().add("custom-button");
+        toggleButton.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/currencyApp/assets/Style/Button.css")).toExternalForm());
+        toggleButton.setMinWidth(174);
+
+
+        middleSection.getChildren().addAll(comparisonSection, toggleButton  );
+        layout.getChildren().add(middleSection);
+
+
 
         // Scene
         Scene scene = new Scene(layout);
@@ -163,6 +194,61 @@ public class App extends Application {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    // shows the exchange rates of specific currencies (USD, CNY, EUR, SAR) compared to MAD
+    private HBox createCurrencyComparisonSection(List<Currency> currencyRates) {
+        HBox comparisonContainer = new HBox(10);
+//        comparisonContainer.setPadding(new javafx.geometry.Insets(10, 0, 0, 0));
+        comparisonContainer.setAlignment(Pos.TOP_LEFT);
+
+        // Currencies to compare against MAD
+        String[] currenciesToCompare = {"EUR", "CNY", "USD", "SAR"};
+
+        for (String currencyCode : currenciesToCompare) {
+            VBox currencyBox = createSingleCurrencyComparison(currencyCode, "MAD", currencyRates);
+            comparisonContainer.getChildren().add(currencyBox);
+        }
+
+        return comparisonContainer;
+    }
+
+    private VBox createSingleCurrencyComparison(String fromCurrency, String toCurrency, List<Currency> currencyRates) {
+        VBox container = new VBox();
+        container.setAlignment(Pos.TOP_LEFT);
+        container.setStyle(
+//                "-fx-background-color: #2A2A2A;" +
+//                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 0 10 3 10;" +
+                        "-fx-min-width: 94;"
+        );
+
+        // Currency pair label (e.g., "USD / MAD")
+        HBox pairLabelContainer = new HBox(0);
+
+        Label MainCurrency = new Label(" / MAD");
+        MainCurrency.setStyle("-fx-text-fill: #B2B2B2; -fx-font-weight: bold; -fx-font-size: 12;");
+
+        Label pairLabel = new Label(fromCurrency);
+        pairLabel.setStyle("-fx-text-fill: #FFFFFF; -fx-font-weight: bold; -fx-font-size: 12;");
+
+        pairLabelContainer.getChildren().addAll(pairLabel, MainCurrency);
+
+        // Rate value label
+        Label rateLabel = new Label();
+        rateLabel.setStyle("-fx-text-fill: #FFFFFF; -fx-font-weight: bold; -fx-font-size: 12;");
+
+        try {
+            double fromRate = getRateForCurrency(currencyRates, fromCurrency);
+            double toRate = getRateForCurrency(currencyRates, toCurrency);
+            double rate = fromRate / toRate;
+            rateLabel.setText(String.format("%.4f", rate));
+        } catch (Exception e) {
+            rateLabel.setText("N/A");
+        }
+
+        container.getChildren().addAll(pairLabelContainer, rateLabel);
+        return container;
     }
 
 
