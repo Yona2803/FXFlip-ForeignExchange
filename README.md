@@ -43,7 +43,7 @@ FXFlip-ForeignExchange is a modern JavaFX desktop application for real-time curr
 
 1. **Clone the repository:**
    ```sh
-   git clone https://github.com/YOUR_USERNAME/FXFlip-ForeignExchange.git
+   git clone https://github.com/Yona2803/FXFlip-ForeignExchange.git
    cd FXFlip-ForeignExchange
    ```
 
@@ -61,6 +61,16 @@ FXFlip-ForeignExchange is a modern JavaFX desktop application for real-time curr
    java -jar target/FXFlip-ForeignExchange-1.0-SNAPSHOT.jar
    ```
 <br />
+
+---
+
+## 🖼️ Screenshots
+
+### Default Mode  
+*![FXFlip-Default](https://github.com/user-attachments/assets/b892be36-aabe-44bc-b5b2-a310d1eaee9e)*
+
+### Toggled Mode  
+*![FXFlip-Toggled](https://github.com/user-attachments/assets/a3d2a8dd-6273-4110-b0a4-d9c5764bd9fc)*
 
 ---
 
