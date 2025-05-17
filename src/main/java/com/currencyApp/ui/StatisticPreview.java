@@ -160,10 +160,6 @@ public class StatisticPreview extends VBox {
         );
         chart.applyCss();
 
-//        chart.lookupAll(".chart-legend-item-text").forEach(node ->
-//                node.setStyle("-fx-text-fill: #FF0000;")
-//        );
-
         chart.lookupAll(".chart-legend").forEach(node ->
                 node.setStyle("-fx-background-color: transparent;")
         );
@@ -176,7 +172,6 @@ public class StatisticPreview extends VBox {
             Color color = CHART_COLORS[i % CHART_COLORS.length];
             String colorHex = colorToHex(color);
 
-            // 1. Style the line
             Node line = series.getNode().lookup(".chart-series-line");
             if (line != null) {
                 line.setStyle(
@@ -184,7 +179,6 @@ public class StatisticPreview extends VBox {
                                 "-fx-stroke-width: 2px;"
                 );
             }
-
 
             for (XYChart.Data<String, Number> data : series.getData()) {
                 if (data.getNode() != null) {
@@ -202,16 +196,7 @@ public class StatisticPreview extends VBox {
                                     "-fx-border-width: 2px;"
                     );
 
-
-//                    Tooltip tooltip = new Tooltip(
-//                            String.format("%s\nDate: %s\nChange: %.2f%%",
-//                                    series.getName(),
-//                                    data.getXValue(),
-//                                    data.getYValue())
-//                    );
-//                    tooltip.setStyle("-fx-font-size: 12px; -fx-background-color: #FFDD00;");
-//                    Tooltip.install(data.getNode(), tooltip);
-                    // Update tooltip style if needed
+                    // Update the tooltip style if needed
                     Tooltip.install(data.getNode(), new Tooltip(String.format("%s\nDate: %s\nChange: %.2f%%",
                             series.getName(), data.getXValue(), data.getYValue())));
 
@@ -229,9 +214,7 @@ public class StatisticPreview extends VBox {
                 textNode.setStyle("-fx-text-fill: " + colorHex + ";");
             }
         }
-
     }
-
 
     private String colorToHex(Color color) {
         return String.format("#%02X%02X%02X",

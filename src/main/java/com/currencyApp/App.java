@@ -3,7 +3,9 @@ package com.currencyApp;
 import com.currencyApp.config.Config;
 import com.currencyApp.model.Currency;
 import com.currencyApp.ui.ComboBoxElement;
+import com.currencyApp.util.CurrencyFormatter;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -297,8 +299,6 @@ public class App extends Application {
         return statsSection;
     }
 
-
-
     private HBox createCurrencyChangeSection(String fromCurrency, String toCurrency) {
         HBox mainContainer = new HBox(8);
         mainContainer.setAlignment(Pos.CENTER_LEFT);
@@ -319,7 +319,7 @@ public class App extends Application {
             changeContainer.setPadding(new Insets(5, 6, 5, 6));
             changeContainer.setStyle("-fx-background-radius: 2;");
 
-            Label rateLabel = new Label(String.format("%.2f", currentRate));
+            Label rateLabel = new Label(CurrencyFormatter.formatConversionRate(currentRate));
             rateLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 12));
 
             Label percentageLabel = new Label();
@@ -335,7 +335,7 @@ public class App extends Application {
                 changeContainer.setStyle("-fx-background-color: #291D20;");
                 rateLabel.setText("- " + rateLabel.getText());
                 rateLabel.setStyle("-fx-text-fill: #E86F8A;");
-                percentageLabel.setText("▼ " + changePercentage);
+                percentageLabel.setText("▼ " + changePercentage + " Today");
                 percentageLabel.setStyle("-fx-text-fill: #E86F8A;");
             }
 
@@ -374,7 +374,7 @@ public class App extends Application {
             percentageLabel.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 12));
 
             if (isPositive) {
-                percentageLabel.setText(" ▲ " + changePercentage + " Today");
+                percentageLabel.setText(" ▲ " + changePercentage);
                 percentageLabel.setStyle("-fx-text-fill: #7AEA8A; -fx-padding: 0 0 0 5;");
             } else {
                 percentageLabel.setText(" ▼ " + changePercentage);
@@ -429,7 +429,7 @@ public class App extends Application {
             double fromRate = getRateForCurrency(currencyRates, fromCurrency);
             double toRate = getRateForCurrency(currencyRates, toCurrency);
             double rate = fromRate / toRate;
-            rateLabel.setText(String.format("%.4f", rate));
+            rateLabel.setText(CurrencyFormatter.formatExchangeRate(rate));
 
         } catch (Exception e) {
             rateLabel.setText("N/A");
@@ -462,7 +462,7 @@ public class App extends Application {
 
             double baseAmount = amount / fromRate;
             double converted = baseAmount * toRate;
-            resultLabel.setText(String.format("%.2f", converted));
+            resultLabel.setText(CurrencyFormatter.formatConversionRate(converted));
 
         } catch (NumberFormatException e) {
             resultLabel.setText("");
@@ -525,10 +525,25 @@ public class App extends Application {
                         "-fx-padding: 17;"
         );
 
+        HBox titleContainer = new HBox(10);
+        titleContainer.setAlignment(Pos.CENTER_LEFT);
+
         Label title = new Label("FXFlip - Foreign Exchange");
-        title.setStyle("-fx-text-fill: white;");
         title.setFont(Font.font("Segoe UI", FontWeight.SEMI_BOLD, 26));
-        innerFrame.getChildren().add(title);
+        title.setStyle("-fx-text-fill: white;");
+        title.setMinWidth(650);
+
+        Label close = new Label("❌ Close");
+        close.setFont(Font.font("Segoe UI", FontWeight.BOLD, 12));
+        close.setStyle("-fx-text-fill: #B14143; -fx-cursor: hand; ");
+        close.setOnMouseClicked(event -> {
+             Platform.exit();
+        });
+
+
+        titleContainer.getChildren().addAll(title, close);
+
+        innerFrame.getChildren().add(titleContainer);
 
         return innerFrame;
     }

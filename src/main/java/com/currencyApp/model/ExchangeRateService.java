@@ -77,8 +77,6 @@ public class ExchangeRateService {
             URI uri = new URI(BASE_URL + endPoint + API_KEY);
             URL url = uri.toURL();
 
-            System.out.println("--> the URL : " + url);
-
             // Create the connection with timeouts
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
